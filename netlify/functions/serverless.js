@@ -70,7 +70,7 @@ exports.handler = async function() {
 
     return {
         statusCode: 200,
-        body: JSON.stringify(
+        body: JSON.stringify( [
             { 
                 "start_date": dateStr[0],
                 "end_date": end_dateStr[0] 
@@ -119,6 +119,6 @@ exports.handler = async function() {
                 "start_date": dateStr[11],
                 "end_date": end_dateStr[11] 
             }
-        )
+        ])
     }
 }
