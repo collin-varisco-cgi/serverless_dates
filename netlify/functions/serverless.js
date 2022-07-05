@@ -20,9 +20,10 @@ function modYear(year, month){
 }
 
 exports.handler = async function() {
-    var month = 2;
-    var year = 2016;
-    var day = 29;
+    const dateVar = new Date();
+    var month = (dateVar.getMonth()+1);
+    var year = dateVar.getFullYear();
+    var day = dateVar.getDate();
     var dateStr = [];
     var end_dateStr = [];
     for(var i = 0; i < 12; i++){
