@@ -1,125 +1,79 @@
-function modMonth(month){
-    if(month - 1 == 0){
-        return 12;
+function modMonth(end){
+    if(end == true && start_month == final_month && start_year == final_year){
+        return final_month;
+    }
+    if(start_month == 12){
+        return 1;
     } else {
-        return month - 1;
+        return start_month + 1;
     }
 }
 
-function leap(year){
-    return (year % 100 === 0) ? (year % 400 === 0) : (year % 4 === 0);
+function modDay(){
+    // The current day is used as the 'end' query paramter on the last query
+    if(start_day == 1 && start_month == final_month && start_year == final_year){
+        return final_day + 1;
+    } else {
+        return 1;
+    }
+    
 }
 
-function modYear(year, month){
-    if(modMonth(month) == 12){
-        return year - 1;
+function modYear(m_month){
+    if(m_month == 1){
+        return start_year + 1;
+    } else {
+        return start_year;
     }
-    else {
-        return year;
-    }
+}
+
+// 7 - 1 - 2021 : The first day of recorded data
+const default_month = 7;
+const default_day = 1;
+const default_year = 2021;
+
+// Grabs current date. Used in the final query.
+const dateVar = new Date();
+const final_month = (dateVar.getMonth()+1);
+const final_year = dateVar.getFullYear();
+const final_day = dateVar.getDate();
+
+// Start at beginning of data : 7 - 1 - 2021
+var start_month = default_month;
+var start_day = default_day;
+var start_year = default_year;
+
+// End variables are a month ahead of start variables
+var end_month = modMonth(start_month);
+var end_day = modDay(start_month, start_year);
+var end_year = modYear(end_month)
+
+var jsonObject = []; // Contains dates
+
+// Append new start and end date object
+function addDates(startDate, endDate){
+    var jsonDate = { "start_date": startDate, "end_date": endDate };
+    jsonObject.push(jsonDate);
 }
 
 exports.handler = async function() {
-    const dateVar = new Date();
-    var month = (dateVar.getMonth()+1);
-    var year = dateVar.getFullYear();
-    var day = dateVar.getDate();
-    var dateStr = [];
-    var end_dateStr = [];
-    for(var i = 0; i < 12; i++){
-        if(day > maxDay(modMonth(month), modYear(year, month)))
-        {
-            var max = maxDay(modMonth(month), modYear(year, month));
-            var difference = day - max;
-            dateStr.push(modYear(year, month) + "-" + modMonth(month) + "-" + (max - difference))
-            end_dateStr.push(year + "-" + month + "-" + day);
-            if(max != day){ 
-                day = (max - difference); 
-            }
-        } else {
-            dateStr.push(modYear(year) + "-" + modMonth(month) + "-" + day) 
-            end_dateStr.push(year + "-" + month + "-" + day);
-        }
-        if(year > modYear(year, month)){
-            year = year - 1;
-        }
-        month = modMonth(month);
-    } 
-
-    // Check for leap year
-    function maxDay(month, year){
-        const maxDayMap = new Map();
-        maxDayMap.set('1', 31);
-        maxDayMap.set('3', 31);
-        maxDayMap.set('4', 30);
-        maxDayMap.set('5', 31);
-        maxDayMap.set('6', 30);
-        maxDayMap.set('7', 31);
-        maxDayMap.set('8', 31);
-        maxDayMap.set('9', 30);
-        maxDayMap.set('10', 31);
-        maxDayMap.set('11', 30);
-        maxDayMap.set('12', 31);
-        if(leap(year)){
-            maxDayMap.set('2', 29);
-        } else {
-            maxDayMap.set('2', 28); 
-        }
-        return maxDayMap.get(month.toString());
+    // Loop until all query dates are added to object
+    var go = true;
+    while(go) {
+        if(start_year == final_year && start_month == (final_month)  ) { go = false; }
+        var startingDate = start_year + "-" + start_month + "-" + start_day;
+        var endingDate = end_year + "-" + end_month + "-" + end_day;
+        addDates(startingDate, endingDate);
+        start_day = modDay();
+        start_month = modMonth(false);
+        start_year = modYear(start_month);
+        end_month = modMonth(true);
+        end_year = modYear(end_month);
+        end_day = modDay();
     }
-
 
     return {
         statusCode: 200,
-        body: JSON.stringify( [
-            { 
-                "start_date": dateStr[0],
-                "end_date": end_dateStr[0] 
-            },
-            { 
-                "start_date": dateStr[1],
-                "end_date": end_dateStr[1] 
-            },
-            { 
-                "start_date": dateStr[2],
-                "end_date": end_dateStr[2] 
-            },
-            { 
-                "start_date": dateStr[3],
-                "end_date": end_dateStr[3] 
-            },
-            { 
-                "start_date": dateStr[4],
-                "end_date": end_dateStr[4] 
-            },
-            { 
-                "start_date": dateStr[5],
-                "end_date": end_dateStr[5] 
-            },
-            { 
-                "start_date": dateStr[6],
-                "end_date": end_dateStr[6] 
-            },
-            { 
-                "start_date": dateStr[7],
-                "end_date": end_dateStr[7] 
-            },
-            { 
-                "start_date": dateStr[8],
-                "end_date": end_dateStr[8] 
-            },
-            { 
-                "start_date": dateStr[9],
-                "end_date": end_dateStr[9] 
-            },
-            { 
-                "start_date": dateStr[10],
-                "end_date": end_dateStr[10] 
-            },
-            { 
-                "start_date": dateStr[11],
-                "end_date": end_dateStr[11] 
-            }
-        ])
+        body: JSON.stringify(jsonObject)
     }
 }
